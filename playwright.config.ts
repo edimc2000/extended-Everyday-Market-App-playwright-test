@@ -29,7 +29,7 @@ export default defineConfig({
     // baseURL: 'http://localhost:3000',
 
     /* Run tests in headed mode */
-    headless: false,
+    headless: true,
 
     /* Collect trace for each test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on',

@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { fashionBrands, getBrandById } from '../test-data/brand-interface';
 import { CATEGORIES } from '../test-data/category';
 
-const APP_URL = 'http://localhost:4200';
+const APP_URL = 'http://localhost:4200/home';
 // const APP_URL = 'http://localhost:5173';
 
 test.describe('Testing Based on Data', () => {
