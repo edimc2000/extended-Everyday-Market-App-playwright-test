@@ -3,6 +3,7 @@ import { fashionBrands, getBrandById } from '../test-data/brand-interface';
 import { CATEGORIES } from '../test-data/category';
 
 const APP_URL = 'http://localhost:4200';
+// const APP_URL = 'http://localhost:5173';
 
 test.describe('Testing Based on Data', () => {
   test.beforeEach(async ({ page }) => {
