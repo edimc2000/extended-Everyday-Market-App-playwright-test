@@ -29,7 +29,7 @@ export default defineConfig({
     // baseURL: 'http://localhost:3000',
 
     /* Run tests in headed mode */
-    headless: true,
+    headless: false,
 
     /* Collect trace for each test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on',
@@ -37,11 +37,19 @@ export default defineConfig({
 
   /* Configure projects for major browsers */
   projects: [
-    {
+{
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: {
+        channel: 'chrome',
+        viewport: { width: 1280, height: 1350 },
+        launchOptions: {
+          headless: false,
+          args: [
+            '--window-position=0,0'
+          ]
+        }
+      },
     },
-
     /* Test against mobile viewports. */
     // {
     //   name: 'Mobile Chrome',
