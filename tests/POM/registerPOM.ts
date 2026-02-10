@@ -29,17 +29,18 @@ export class RegisterPage {
     readonly addressError: Locator;
     readonly provinceError: Locator;
     readonly countryError: Locator;
-
-
-
     readonly termsError: Locator;
-    readonly generalErrorMessage: Locator;
-    readonly successMessage: Locator;
+
+    // modals 
+    readonly termsModal: Locator;
+    readonly termsModalClose: Locator;
+    readonly privacyModal: Locator;
+    readonly privacyModalClose: Locator;
+    readonly termsModalBody: Locator;
+    readonly privacyModalBody: Locator;
 
     // Action buttons
     readonly registerButton: Locator;
-    readonly loginLink: Locator;
-    readonly backToHomeButton: Locator;
 
     // Page elements
     readonly pageTitle: Locator;
@@ -49,7 +50,7 @@ export class RegisterPage {
     // Post-registration elements (after successful registration)
     readonly welcomeMessage: Locator;
     readonly signOutButton: Locator;
-    
+
     // Header navigation elements (visible when not logged in)
     readonly registerAccountButton: Locator;
     readonly signInButton: Locator;
@@ -67,7 +68,7 @@ export class RegisterPage {
 
         this.passwordInput = page.getByTestId('password');
         this.passwordError = page.locator('div.input-group> #password ~ .error');
-  
+
         this.phoneInput = page.getByTestId('phone');
         this.phoneError = page.locator('div.input-group> #phone ~ .error');
 
@@ -92,20 +93,26 @@ export class RegisterPage {
         // Action buttons
         this.registerButton = page.getByTestId('register-button');
 
+        //Modals
 
-        this.loginLink = page.locator('a[href*="login"], .login-link, :text("Login"), :text("Sign in")');
-        this.backToHomeButton = page.locator('a[href="/"], a[href="/home"], .back-home, :text("Back to Home")');
 
+        this.termsModal = page.getByTestId('terms-modal')
+        this.termsModalClose = page.getByTestId('close-terms')
+        this.privacyModal = page.getByTestId('privacy-modal')
+        this.privacyModalClose = page.getByTestId('close-privacy')
+
+        this.termsModalBody = page.getByTestId('modal-terms-body')
+        this.privacyModalBody = page.getByTestId('modal-privacy-body')
 
         // Page elements
         this.pageTitle = page.locator('title, .page-title, h1:has-text("Register")');
         this.registerHeader = page.locator('h1, h2, .register-header, .register-title');
         this.registerForm = page.locator('form, .register-form, .registration-form');
-        
+
         // Post-registration elements
         this.welcomeMessage = page.getByTestId('welcome');
         this.signOutButton = page.getByTestId('signout');
-        
+
         // Header navigation elements
         this.registerAccountButton = page.getByTestId('register-an-account');
         this.signInButton = page.getByTestId('signin');

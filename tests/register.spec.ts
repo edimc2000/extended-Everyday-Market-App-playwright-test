@@ -690,16 +690,16 @@ test.describe('Agree Terms Field', () => {
     await registerPage.fillAddress('123 Main Street');
     await registerPage.selectProvince(PROVINCE_NAMES[0]);
     await registerPage.selectCountry('Canada');
-    
+
     // Click on the checkbox but leave it unchecked
     await registerPage.termsCheckbox.click();
     await registerPage.termsCheckbox.click(); // Click again to uncheck
-    
+
     // Click elsewhere to trigger validation
     await registerPage.nameInput.click();
-    
+
     await page.waitForTimeout(200);
-    
+
     await expect.soft(registerPage.termsError).toBeVisible();
     await expect.soft(registerPage.termsError).toHaveText('Please tick the box to proceed');
     await page.waitForTimeout(timeout);
@@ -715,18 +715,18 @@ test.describe('Agree Terms Field', () => {
     await registerPage.fillAddress('123 Main Street');
     await registerPage.selectProvince(PROVINCE_NAMES[0]);
     await registerPage.selectCountry('Canada');
-    
+
     // Check the terms checkbox
     await registerPage.acceptTerms();
-    
+
     await page.waitForTimeout(200);
-    
+
     // Verify the checkbox is checked
     await expect.soft(registerPage.termsCheckbox).toBeChecked();
-    
+
     // Verify no error message is shown
     await expect.soft(registerPage.termsError).not.toBeVisible();
-    
+
     await page.waitForTimeout(timeout);
   });
 
@@ -734,18 +734,18 @@ test.describe('Agree Terms Field', () => {
     // Verify the Terms of Use button is visible and clickable
     const termsButton = page.locator('button.link-button:has-text("Terms of Use")');
     await expect.soft(termsButton).toBeVisible();
-    
+
     // Verify the Privacy Policy button is visible and clickable  
     const privacyButton = page.locator('button.link-button:has-text("Privacy Policy")');
     await expect.soft(privacyButton).toBeVisible();
-    
+
     await page.waitForTimeout(timeout);
   });
 
   test('TC-REG-004 Complete form validation with terms agreement', async ({ page }) => {
     // Verify register button is initially disabled when form is empty
     await expect.soft(registerPage.registerButton).toBeDisabled();
-    
+
     // Fill all fields with valid data including checking terms
     await registerPage.fillName('John Doe');
     await registerPage.fillEmail(dummyEmail);
@@ -756,9 +756,9 @@ test.describe('Agree Terms Field', () => {
     await registerPage.selectProvince(PROVINCE_NAMES[0]);
     await registerPage.selectCountry('Canada');
     await registerPage.acceptTerms();
-    
+
     await page.waitForTimeout(200);
-    
+
     // Verify all validations pass - no error messages visible
     await expect.soft(registerPage.nameError).not.toBeVisible();
     await expect.soft(registerPage.emailError).not.toBeVisible();
@@ -769,10 +769,10 @@ test.describe('Agree Terms Field', () => {
     await expect.soft(registerPage.provinceError).not.toBeVisible();
     await expect.soft(registerPage.countryError).not.toBeVisible();
     await expect.soft(registerPage.termsError).not.toBeVisible();
-    
+
     // Verify register button is enabled when form is valid and terms are checked
     await expect.soft(registerPage.registerButton).toBeEnabled();
-    
+
     await page.waitForTimeout(timeout);
   });
 });
@@ -789,104 +789,138 @@ test.describe('Successful Registration Flow', () => {
   test('TC-REG-001 Successful registration redirects to home page', async ({ page }) => {
     // Complete registration with valid data
     await registerPage.completeRegistration('John Doe', dummyEmail);
-    
+
     // Wait for redirect to home page
     await page.waitForURL('**/home');
-    
+
     // Verify we're on the home page
     expect(page.url()).toContain('/home');
-    
+
     await page.waitForTimeout(timeout);
   });
 
   test('TC-REG-002 Welcome message displays user name after successful registration', async ({ page }) => {
     const userName = 'John Doe';
-    
+
     // Complete registration with specific user name
     await registerPage.completeRegistration(userName, dummyEmail);
-    
+
     // Wait for redirect to home page
     await page.waitForURL('**/home');
-    
+
     // Verify welcome message contains the user's name
     await expect.soft(registerPage.welcomeMessage).toBeVisible();
     await expect.soft(registerPage.welcomeMessage).toContainText(`Welcome ${userName}`);
-    
+
     // Verify that register and sign in buttons are hidden when logged in
     await expect.soft(registerPage.registerAccountButton).not.toBeVisible();
     await expect.soft(registerPage.signInButton).not.toBeVisible();
-    
+
     await page.waitForTimeout(timeout);
   });
 
   test('TC-REG-003 Sign out button is visible after successful registration', async ({ page }) => {
     // Complete registration
     await registerPage.completeRegistration('John Doe', dummyEmail);
-    
+
     // Wait for redirect to home page
     await page.waitForURL('**/home');
-    
+
     // Verify sign out button is visible and clickable
     await expect.soft(registerPage.signOutButton).toBeVisible();
     await expect.soft(registerPage.signOutButton).toBeEnabled();
-    
+
     // Verify that register and sign in buttons are hidden when logged in
     await expect.soft(registerPage.registerAccountButton).not.toBeVisible();
     await expect.soft(registerPage.signInButton).not.toBeVisible();
-    
+
     await page.waitForTimeout(timeout);
   });
 
   test('TC-REG-004 Complete registration flow with header validation', async ({ page }) => {
     const userName = 'Jane Smith';
     const userEmail = 'jane.smith@example.com';
-    
+
     // Complete registration with custom user data
     await registerPage.completeRegistration(userName, userEmail);
-    
+
     // Wait for redirect to home page
     await page.waitForURL('**/home');
-    
+
     // Verify all post-registration elements
     await expect.soft(registerPage.welcomeMessage).toBeVisible();
     await expect.soft(registerPage.welcomeMessage).toContainText(`Welcome ${userName}`);
     await expect.soft(registerPage.signOutButton).toBeVisible();
     await expect.soft(registerPage.signOutButton).toBeEnabled();
-    
+
     // Verify that register and sign in buttons are hidden when logged in
     await expect.soft(registerPage.registerAccountButton).not.toBeVisible();
     await expect.soft(registerPage.signInButton).not.toBeVisible();
-    
+
     // Verify page URL
     expect(page.url()).toContain('/home');
-    
+
     await page.waitForTimeout(timeout);
   });
 
   test('TC-REG-005 Sign out functionality works after registration', async ({ page }) => {
     // Complete registration
     await registerPage.completeRegistration('John Doe', dummyEmail);
-    
+
     // Wait for redirect to home page
     await page.waitForURL('**/home');
-    
+
     // Verify we're logged in (welcome message visible)
     await expect.soft(registerPage.welcomeMessage).toBeVisible();
-    
+
     // Click sign out
     await registerPage.signOut();
-    
+
     // Wait for sign out process to complete
     await page.waitForTimeout(1000);
-    
+
     // Verify that register and sign in buttons are visible again in header
     await expect.soft(registerPage.registerAccountButton).toBeVisible();
     await expect.soft(registerPage.signInButton).toBeVisible();
-    
+
     // Verify that logged-in elements are no longer visible
     await expect.soft(registerPage.welcomeMessage).not.toBeVisible();
     await expect.soft(registerPage.signOutButton).not.toBeVisible();
-    
+
     await page.waitForTimeout(timeout);
   });
 });
+
+
+test.describe('Modal', () => {
+  let registerPage: RegisterPage;
+
+  test.beforeEach(async ({ page }) => {
+    registerPage = new RegisterPage(page);
+    await registerPage.goto();
+    await registerPage.waitForPageLoad();
+  });
+
+  test('TC-REG-001 Terms of Use and Privacy Policy modals can be opened and closed', async ({ page }) => {
+
+    await registerPage.termsModal.click()
+    await expect(registerPage.termsModalBody).toContainText('Acceptance of Terms')
+    await registerPage.termsModalClose.click()
+
+
+
+    await registerPage.privacyModal.click()
+    await expect(registerPage.privacyModalBody).toContainText(' Privacy Policy')
+    await registerPage.privacyModalClose.click()
+
+
+    await page.waitForTimeout(timeout);
+
+
+
+  })
+
+
+
+
+})
