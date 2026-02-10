@@ -4,8 +4,10 @@ import { SEEDED_EMAIL_ADDRESSES } from '../test-data/email-address';
 // import { PROVINCE_NAMES } from '../test-data/canadian-provinces';
 // import { PROVINCE_NAMES } from '../test-data/canadian-provinces';
 import { PROVINCE_NAMES } from '../test-data/canadian-provinces';
+import { COUNTRY_NAMES } from '../test-data/countries';
 
 let timeout = 5000;
+const dummyEmail = 'test.user@example.com';
 
 test.describe('Name Field', () => {
   let registerPage: RegisterPage;
@@ -477,7 +479,7 @@ test.describe('Province Field', () => {
     await registerPage.waitForPageLoad();
   });
 
-  test.only('TC-REG-001 Province dropdown options match test data', async ({ page }) => {
+  test('TC-REG-001 Province dropdown options match test data', async ({ page }) => {
     // Fill all other required fields first
     await registerPage.fillName('John Doe');
     await registerPage.fillEmail('newuser@example.com');
@@ -485,18 +487,18 @@ test.describe('Province Field', () => {
     await registerPage.fillPhone('1234567890');
     await registerPage.fillBirthday('1990-01-01');
     await registerPage.fillAddress('123 Main Street');
-    
+
     // Click on the dropdown to open it
     await registerPage.provinceSelect.click();
     await page.waitForTimeout(200);
-    
+
     // Get all option elements from the dropdown (excluding the empty placeholder)
     const options = await registerPage.provinceSelect.locator('option:not([value=""])').allTextContents();
-    
+
     // Verify the dropdown options match the test data
     expect(options).toEqual(PROVINCE_NAMES);
     expect(options.length).toBe(PROVINCE_NAMES.length);
-    
+
     await page.waitForTimeout(timeout);
   });
 
@@ -508,13 +510,13 @@ test.describe('Province Field', () => {
     await registerPage.fillPhone('1234567890');
     await registerPage.fillBirthday('1990-01-01');
     await registerPage.fillAddress('123 Main Street');
-    
+
     // Leave province unselected (it starts with empty value) and trigger validation
     await registerPage.provinceSelect.click();
     await registerPage.nameInput.click();
-    
+
     await page.waitForTimeout(200);
-    
+
     await expect.soft(registerPage.provinceError).toBeVisible();
     await expect.soft(registerPage.provinceError).toHaveText('Province is required');
     await page.waitForTimeout(timeout);
@@ -528,20 +530,362 @@ test.describe('Province Field', () => {
     await registerPage.fillPhone('1234567890');
     await registerPage.fillBirthday('1990-01-01');
     await registerPage.fillAddress('123 Main Street');
-    
+
     // Select a valid province from the test data
     const selectedProvince = PROVINCE_NAMES[0]; // Take first province (Newfoundland and Labrador)
     await registerPage.selectProvince(selectedProvince);
     await registerPage.nameInput.click();
-    
+
     await page.waitForTimeout(200);
-    
+
     // Verify the selected value
     const selectedValue = await registerPage.provinceSelect.inputValue();
     expect(selectedValue).toBe(selectedProvince);
-    
+
     // Verify no error message is shown
     await expect.soft(registerPage.provinceError).not.toBeVisible();
+
+    await page.waitForTimeout(timeout);
+  });
+});
+
+test.describe('Country Field', () => {
+  let registerPage: RegisterPage;
+
+  test.beforeEach(async ({ page }) => {
+    registerPage = new RegisterPage(page);
+    await registerPage.goto();
+    await registerPage.waitForPageLoad();
+  });
+
+  test('TC-REG-001 Country field shows error when left empty', async ({ page }) => {
+    // Fill previous fields first to ensure proper form flow
+    await registerPage.fillName('John Doe');
+    await registerPage.fillEmail(dummyEmail);
+    await registerPage.fillPassword('Password1!');
+    await registerPage.fillPhone('4164567890');
+    await registerPage.fillBirthday('1990-01-01');
+    await registerPage.fillAddress('123 Main Street');
+    await registerPage.selectProvince(PROVINCE_NAMES[0]);
+
+    // Click on country field but don't select anything
+    await registerPage.countrySelect.click();
+    // Click elsewhere to trigger validation
+    await registerPage.nameInput.click();
+
+    await page.waitForTimeout(200);
+
+    await expect.soft(registerPage.countryError).toBeVisible();
+    await expect.soft(registerPage.countryError).toHaveText('Country is required');
+    await page.waitForTimeout(timeout);
+  });
+
+  test('TC-REG-002 Country field shows error when selecting non-Canada', async ({ page }) => {
+    // Fill previous fields first
+    await registerPage.fillName('John Doe');
+    await registerPage.fillEmail(dummyEmail);
+    await registerPage.fillPassword('Password1!');
+    await registerPage.fillPhone('4164567890');
+    await registerPage.fillBirthday('1990-01-01');
+    await registerPage.fillAddress('123 Main Street');
+    await registerPage.selectProvince(PROVINCE_NAMES[0]);
+
+    // Select United States (should trigger pattern validation)
+    await registerPage.countrySelect.click();
+    await registerPage.selectCountry('United States');
+
+    // Click elsewhere to trigger validation
+    await registerPage.nameInput.click();
+
+    await page.waitForTimeout(200);
+
+    await expect.soft(registerPage.countryError).toBeVisible();
+    await expect.soft(registerPage.countryError).toHaveText('Country should be set to Canada');
+    await page.waitForTimeout(timeout);
+  });
+
+  test('TC-REG-003 Country field accepts Canada selection', async ({ page }) => {
+    // Fill previous fields first
+    await registerPage.fillName('John Doe');
+    await registerPage.fillEmail(SEEDED_EMAIL_ADDRESSES[0].email);
+    await registerPage.fillPassword('Password1!');
+    await registerPage.fillPhone('4164567890');
+    await registerPage.fillBirthday('1990-01-01');
+    await registerPage.fillAddress('123 Main Street');
+    await registerPage.selectProvince(PROVINCE_NAMES[0]);
+
+    // Select Canada
+    await registerPage.selectCountry('Canada');
+
+    await page.waitForTimeout(200);
+
+    // Verify the correct value is selected
+    const selectedValue = await registerPage.countrySelect.inputValue();
+    expect(selectedValue).toBe('Canada');
+
+    // Verify no error message is shown
+    await expect.soft(registerPage.countryError).not.toBeVisible();
+
+    await page.waitForTimeout(timeout);
+  });
+
+  test('TC-REG-004 Country dropdown contains expected options', async ({ page }) => {
+    // Click on the dropdown to open it
+    await registerPage.countrySelect.click();
+    await page.waitForTimeout(200);
+
+    // Get all option elements from the dropdown (excluding the empty placeholder)
+    const options = await registerPage.countrySelect.locator('option:not([value=""])').allTextContents();
+
+    // Verify the dropdown options match the test data
+    expect(options).toEqual(COUNTRY_NAMES);
+    expect(options.length).toBe(COUNTRY_NAMES.length);
+
+    await page.waitForTimeout(timeout);
+  });
+
+  test('TC-REG-005 Country field validation works in complete form context', async ({ page }) => {
+    // Fill all fields with valid data including Canada
+    await registerPage.fillName('John Doe');
+    await registerPage.fillEmail(dummyEmail);
+    await registerPage.fillPassword('Password1!');
+    await registerPage.fillPhone('4164567890');
+    await registerPage.fillBirthday('1990-01-01');
+    await registerPage.fillAddress('123 Main Street');
+    await registerPage.selectProvince(PROVINCE_NAMES[0]);
+    await registerPage.selectCountry('Canada');
+
+    await page.waitForTimeout(200);
+
+    // Verify all validations pass - no error messages visible
+    await expect.soft(registerPage.nameError).not.toBeVisible();
+    await expect.soft(registerPage.emailError).not.toBeVisible();
+    await expect.soft(registerPage.passwordError).not.toBeVisible();
+    await expect.soft(registerPage.phoneError).not.toBeVisible();
+    await expect.soft(registerPage.birthdayError).not.toBeVisible();
+    await expect.soft(registerPage.addressError).not.toBeVisible();
+    await expect.soft(registerPage.provinceError).not.toBeVisible();
+    await expect.soft(registerPage.countryError).not.toBeVisible();
+
+    await page.waitForTimeout(timeout);
+  });
+});
+
+test.describe('Agree Terms Field', () => {
+  let registerPage: RegisterPage;
+
+  test.beforeEach(async ({ page }) => {
+    registerPage = new RegisterPage(page);
+    await registerPage.goto();
+    await registerPage.waitForPageLoad();
+  });
+
+  test('TC-REG-001 Agree terms checkbox shows error when not checked (required validation)', async ({ page }) => {
+    // Fill all other required fields first
+    await registerPage.fillName('John Doe');
+    await registerPage.fillEmail(dummyEmail);
+    await registerPage.fillPassword('Password1!');
+    await registerPage.fillPhone('4164567890');
+    await registerPage.fillBirthday('1990-01-01');
+    await registerPage.fillAddress('123 Main Street');
+    await registerPage.selectProvince(PROVINCE_NAMES[0]);
+    await registerPage.selectCountry('Canada');
+    
+    // Click on the checkbox but leave it unchecked
+    await registerPage.termsCheckbox.click();
+    await registerPage.termsCheckbox.click(); // Click again to uncheck
+    
+    // Click elsewhere to trigger validation
+    await registerPage.nameInput.click();
+    
+    await page.waitForTimeout(200);
+    
+    await expect.soft(registerPage.termsError).toBeVisible();
+    await expect.soft(registerPage.termsError).toHaveText('Please tick the box to proceed');
+    await page.waitForTimeout(timeout);
+  });
+
+  test('TC-REG-002 Agree terms checkbox accepts being checked (positive test)', async ({ page }) => {
+    // Fill all other required fields first
+    await registerPage.fillName('John Doe');
+    await registerPage.fillEmail(dummyEmail);
+    await registerPage.fillPassword('Password1!');
+    await registerPage.fillPhone('4164567890');
+    await registerPage.fillBirthday('1990-01-01');
+    await registerPage.fillAddress('123 Main Street');
+    await registerPage.selectProvince(PROVINCE_NAMES[0]);
+    await registerPage.selectCountry('Canada');
+    
+    // Check the terms checkbox
+    await registerPage.acceptTerms();
+    
+    await page.waitForTimeout(200);
+    
+    // Verify the checkbox is checked
+    await expect.soft(registerPage.termsCheckbox).toBeChecked();
+    
+    // Verify no error message is shown
+    await expect.soft(registerPage.termsError).not.toBeVisible();
+    
+    await page.waitForTimeout(timeout);
+  });
+
+  test('TC-REG-003 Terms of Use and Privacy Policy buttons are visible', async ({ page }) => {
+    // Verify the Terms of Use button is visible and clickable
+    const termsButton = page.locator('button.link-button:has-text("Terms of Use")');
+    await expect.soft(termsButton).toBeVisible();
+    
+    // Verify the Privacy Policy button is visible and clickable  
+    const privacyButton = page.locator('button.link-button:has-text("Privacy Policy")');
+    await expect.soft(privacyButton).toBeVisible();
+    
+    await page.waitForTimeout(timeout);
+  });
+
+  test('TC-REG-004 Complete form validation with terms agreement', async ({ page }) => {
+    // Verify register button is initially disabled when form is empty
+    await expect.soft(registerPage.registerButton).toBeDisabled();
+    
+    // Fill all fields with valid data including checking terms
+    await registerPage.fillName('John Doe');
+    await registerPage.fillEmail(dummyEmail);
+    await registerPage.fillPassword('Password1!');
+    await registerPage.fillPhone('4164567890');
+    await registerPage.fillBirthday('1990-01-01');
+    await registerPage.fillAddress('123 Main Street');
+    await registerPage.selectProvince(PROVINCE_NAMES[0]);
+    await registerPage.selectCountry('Canada');
+    await registerPage.acceptTerms();
+    
+    await page.waitForTimeout(200);
+    
+    // Verify all validations pass - no error messages visible
+    await expect.soft(registerPage.nameError).not.toBeVisible();
+    await expect.soft(registerPage.emailError).not.toBeVisible();
+    await expect.soft(registerPage.passwordError).not.toBeVisible();
+    await expect.soft(registerPage.phoneError).not.toBeVisible();
+    await expect.soft(registerPage.birthdayError).not.toBeVisible();
+    await expect.soft(registerPage.addressError).not.toBeVisible();
+    await expect.soft(registerPage.provinceError).not.toBeVisible();
+    await expect.soft(registerPage.countryError).not.toBeVisible();
+    await expect.soft(registerPage.termsError).not.toBeVisible();
+    
+    // Verify register button is enabled when form is valid and terms are checked
+    await expect.soft(registerPage.registerButton).toBeEnabled();
+    
+    await page.waitForTimeout(timeout);
+  });
+});
+
+test.describe('Successful Registration Flow', () => {
+  let registerPage: RegisterPage;
+
+  test.beforeEach(async ({ page }) => {
+    registerPage = new RegisterPage(page);
+    await registerPage.goto();
+    await registerPage.waitForPageLoad();
+  });
+
+  test('TC-REG-001 Successful registration redirects to home page', async ({ page }) => {
+    // Complete registration with valid data
+    await registerPage.completeRegistration('John Doe', dummyEmail);
+    
+    // Wait for redirect to home page
+    await page.waitForURL('**/home');
+    
+    // Verify we're on the home page
+    expect(page.url()).toContain('/home');
+    
+    await page.waitForTimeout(timeout);
+  });
+
+  test('TC-REG-002 Welcome message displays user name after successful registration', async ({ page }) => {
+    const userName = 'John Doe';
+    
+    // Complete registration with specific user name
+    await registerPage.completeRegistration(userName, dummyEmail);
+    
+    // Wait for redirect to home page
+    await page.waitForURL('**/home');
+    
+    // Verify welcome message contains the user's name
+    await expect.soft(registerPage.welcomeMessage).toBeVisible();
+    await expect.soft(registerPage.welcomeMessage).toContainText(`Welcome ${userName}`);
+    
+    // Verify that register and sign in buttons are hidden when logged in
+    await expect.soft(registerPage.registerAccountButton).not.toBeVisible();
+    await expect.soft(registerPage.signInButton).not.toBeVisible();
+    
+    await page.waitForTimeout(timeout);
+  });
+
+  test('TC-REG-003 Sign out button is visible after successful registration', async ({ page }) => {
+    // Complete registration
+    await registerPage.completeRegistration('John Doe', dummyEmail);
+    
+    // Wait for redirect to home page
+    await page.waitForURL('**/home');
+    
+    // Verify sign out button is visible and clickable
+    await expect.soft(registerPage.signOutButton).toBeVisible();
+    await expect.soft(registerPage.signOutButton).toBeEnabled();
+    
+    // Verify that register and sign in buttons are hidden when logged in
+    await expect.soft(registerPage.registerAccountButton).not.toBeVisible();
+    await expect.soft(registerPage.signInButton).not.toBeVisible();
+    
+    await page.waitForTimeout(timeout);
+  });
+
+  test('TC-REG-004 Complete registration flow with header validation', async ({ page }) => {
+    const userName = 'Jane Smith';
+    const userEmail = 'jane.smith@example.com';
+    
+    // Complete registration with custom user data
+    await registerPage.completeRegistration(userName, userEmail);
+    
+    // Wait for redirect to home page
+    await page.waitForURL('**/home');
+    
+    // Verify all post-registration elements
+    await expect.soft(registerPage.welcomeMessage).toBeVisible();
+    await expect.soft(registerPage.welcomeMessage).toContainText(`Welcome ${userName}`);
+    await expect.soft(registerPage.signOutButton).toBeVisible();
+    await expect.soft(registerPage.signOutButton).toBeEnabled();
+    
+    // Verify that register and sign in buttons are hidden when logged in
+    await expect.soft(registerPage.registerAccountButton).not.toBeVisible();
+    await expect.soft(registerPage.signInButton).not.toBeVisible();
+    
+    // Verify page URL
+    expect(page.url()).toContain('/home');
+    
+    await page.waitForTimeout(timeout);
+  });
+
+  test('TC-REG-005 Sign out functionality works after registration', async ({ page }) => {
+    // Complete registration
+    await registerPage.completeRegistration('John Doe', dummyEmail);
+    
+    // Wait for redirect to home page
+    await page.waitForURL('**/home');
+    
+    // Verify we're logged in (welcome message visible)
+    await expect.soft(registerPage.welcomeMessage).toBeVisible();
+    
+    // Click sign out
+    await registerPage.signOut();
+    
+    // Wait for sign out process to complete
+    await page.waitForTimeout(1000);
+    
+    // Verify that register and sign in buttons are visible again in header
+    await expect.soft(registerPage.registerAccountButton).toBeVisible();
+    await expect.soft(registerPage.signInButton).toBeVisible();
+    
+    // Verify that logged-in elements are no longer visible
+    await expect.soft(registerPage.welcomeMessage).not.toBeVisible();
+    await expect.soft(registerPage.signOutButton).not.toBeVisible();
     
     await page.waitForTimeout(timeout);
   });

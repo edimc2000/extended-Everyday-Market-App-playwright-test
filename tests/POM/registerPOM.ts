@@ -13,6 +13,7 @@ export class RegisterPage {
     readonly birthdayInput: Locator;
     readonly addressInput: Locator;
     readonly provinceSelect: Locator;
+    readonly countrySelect: Locator;
 
     readonly termsCheckbox: Locator;
     readonly newsletterCheckbox: Locator;
@@ -27,6 +28,7 @@ export class RegisterPage {
     readonly birthdayError: Locator;
     readonly addressError: Locator;
     readonly provinceError: Locator;
+    readonly countryError: Locator;
 
 
 
@@ -43,6 +45,14 @@ export class RegisterPage {
     readonly pageTitle: Locator;
     readonly registerHeader: Locator;
     readonly registerForm: Locator;
+
+    // Post-registration elements (after successful registration)
+    readonly welcomeMessage: Locator;
+    readonly signOutButton: Locator;
+    
+    // Header navigation elements (visible when not logged in)
+    readonly registerAccountButton: Locator;
+    readonly signInButton: Locator;
 
     constructor(page: Page) {
         this.page = page;
@@ -70,13 +80,19 @@ export class RegisterPage {
         this.provinceSelect = page.getByTestId('province');
         this.provinceError = page.locator('div.input-group> #province ~ .error');
 
+        this.countrySelect = page.getByTestId('country');
+        this.countryError = page.locator('div.input-group> #country ~ .error');
+
         this.confirmPasswordInput = page.getByTestId('confirmPassword');
 
-        this.termsCheckbox = page.locator('input[name="terms"], input[id="terms"], #accept-terms');
-        this.newsletterCheckbox = page.locator('input[name="newsletter"], input[id="newsletter"], #newsletter');
+        this.termsCheckbox = page.getByTestId('agree');
+        this.termsError = page.locator('.terms-consent-actions .error');
+
 
         // Action buttons
-        this.registerButton = page.locator('button[type="submit"], .register-btn, #register-button, button:has-text("Register")');
+        this.registerButton = page.getByTestId('register-button');
+
+
         this.loginLink = page.locator('a[href*="login"], .login-link, :text("Login"), :text("Sign in")');
         this.backToHomeButton = page.locator('a[href="/"], a[href="/home"], .back-home, :text("Back to Home")');
 
@@ -85,6 +101,14 @@ export class RegisterPage {
         this.pageTitle = page.locator('title, .page-title, h1:has-text("Register")');
         this.registerHeader = page.locator('h1, h2, .register-header, .register-title');
         this.registerForm = page.locator('form, .register-form, .registration-form');
+        
+        // Post-registration elements
+        this.welcomeMessage = page.getByTestId('welcome');
+        this.signOutButton = page.getByTestId('signout');
+        
+        // Header navigation elements
+        this.registerAccountButton = page.getByTestId('register-an-account');
+        this.signInButton = page.getByTestId('signin');
     }
 
     // Navigation methods
@@ -131,6 +155,10 @@ export class RegisterPage {
 
     async selectProvince(province: string) {
         await this.provinceSelect.selectOption(province);
+    }
+
+    async selectCountry(country: string) {
+        await this.countrySelect.selectOption(country);
     }
 
     async fillRegistrationForm(userData: {
@@ -190,5 +218,23 @@ export class RegisterPage {
     // Validation methods
     async waitForPageLoad() {
         await this.registerForm.waitFor();
+    }
+
+    // Post-registration methods
+    async signOut() {
+        await this.signOutButton.click();
+    }
+
+    async completeRegistration(name: string = 'John Doe', email: string = 'test.user@example.com') {
+        await this.fillName(name);
+        await this.fillEmail(email);
+        await this.fillPassword('Password1!');
+        await this.fillPhone('4164567890');
+        await this.fillBirthday('1990-01-01');
+        await this.fillAddress('123 Main Street');
+        await this.selectProvince('Ontario');
+        await this.selectCountry('Canada');
+        await this.acceptTerms();
+        await this.submitRegistration();
     }
 }
