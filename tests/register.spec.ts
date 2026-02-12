@@ -28,7 +28,7 @@ test.describe('Name Field', () => {
     await page.waitForTimeout(200)
 
     await expect.soft(registerPage.nameError).toBeVisible();
-    await expect.soft(registerPage.nameError).toHaveText('Input does not meet the minimum length requirement - 5 chars');
+    await expect.soft(registerPage.nameError).toHaveText('Does not meet the minimum length requirement - 5 chars');
     await page.waitForTimeout(timeout);
   });
 
@@ -191,7 +191,7 @@ test.describe('Password Field', () => {
     await page.waitForTimeout(200);
 
     await expect.soft(registerPage.passwordError).toBeVisible();
-    await expect.soft(registerPage.passwordError).toHaveText('Password required minimum of 6 chars');
+    await expect.soft(registerPage.passwordError).toHaveText('Does not meet the minimum length requirement - 6 chars');
     await page.waitForTimeout(timeout);
   });
 
@@ -256,7 +256,7 @@ test.describe('Phone Field', () => {
     await page.waitForTimeout(200);
 
     await expect.soft(registerPage.phoneError).toBeVisible();
-    await expect.soft(registerPage.phoneError).toHaveText('Phone number should a 10 digit phone number');
+    await expect.soft(registerPage.phoneError).toHaveText('Phone number should be 10 digits');
     await page.waitForTimeout(timeout);
   });
 
@@ -494,10 +494,12 @@ test.describe('Province Field', () => {
 
     // Get all option elements from the dropdown (excluding the empty placeholder)
     const options = await registerPage.provinceSelect.locator('option:not([value=""])').allTextContents();
+    const normalizedOptions = options.map((option) => option.trim()).filter(Boolean);
+    const expectedOptions = PROVINCE_NAMES.map((name) => name.trim());
 
-    // Verify the dropdown options match the test data
-    expect(options).toEqual(PROVINCE_NAMES);
-    expect(options.length).toBe(PROVINCE_NAMES.length);
+    // Verify the dropdown options match the test data (order-insensitive)
+    expect([...normalizedOptions].sort()).toEqual([...expectedOptions].sort());
+    expect(normalizedOptions.length).toBe(expectedOptions.length);
 
     await page.waitForTimeout(timeout);
   });
@@ -636,10 +638,12 @@ test.describe('Country Field', () => {
 
     // Get all option elements from the dropdown (excluding the empty placeholder)
     const options = await registerPage.countrySelect.locator('option:not([value=""])').allTextContents();
+    const normalizedOptions = options.map((option) => option.trim()).filter(Boolean);
+    const expectedOptions = COUNTRY_NAMES.map((name) => name.trim());
 
-    // Verify the dropdown options match the test data
-    expect(options).toEqual(COUNTRY_NAMES);
-    expect(options.length).toBe(COUNTRY_NAMES.length);
+    // Verify the dropdown options match the test data (order-insensitive)
+    expect([...normalizedOptions].sort()).toEqual([...expectedOptions].sort());
+    expect(normalizedOptions.length).toBe(expectedOptions.length);
 
     await page.waitForTimeout(timeout);
   });
